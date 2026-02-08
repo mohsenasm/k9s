@@ -128,7 +128,7 @@ func (l *Logo) refreshLogo(c config.Color) {
 	defer l.mx.Unlock()
 	l.logo.Clear()
 
-	slicedTitle := l.title[:min(len(l.title), 3)]
+	slicedTitle := l.title[:min(len(l.title), 4)]
 	logoString := figure.NewFigure(slicedTitle, "ANSI Shadow", true).String()
 	logoString = strings.TrimRight(logoString, " \n\t ") // Regular Space, New Line, Horizontal Tab, Em Space
 	fmt.Fprintf(l.logo, "[%s::b]%s", c, logoString)
