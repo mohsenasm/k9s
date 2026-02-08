@@ -116,6 +116,7 @@ func (a *App) Init(version string, _ int) error {
 		a.clusterModel = model.NewClusterInfo(a.factory, a.version, a.Config.K9s)
 		a.clusterModel.AddListener(a.clusterInfo())
 		a.clusterModel.AddListener(a.statusIndicator())
+		a.clusterModel.AddListener(a.logo())
 		if a.Conn().ConnectionOK() {
 			a.clusterModel.Refresh()
 			a.clusterInfo().Init()
@@ -815,4 +816,8 @@ func (a *App) clusterInfo() *ClusterInfo {
 
 func (a *App) statusIndicator() *ui.StatusIndicator {
 	return a.Views()["statusIndicator"].(*ui.StatusIndicator)
+}
+
+func (a *App) logo() *ui.Logo {
+	return a.Views()["logo"].(*ui.Logo)
 }

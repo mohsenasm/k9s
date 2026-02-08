@@ -9,13 +9,17 @@ import (
 	"sync"
 
 	"github.com/derailed/k9s/internal/config"
+	"github.com/derailed/k9s/internal/model"
 	"github.com/derailed/tview"
+
+	"github.com/mohsenasm/go-figure"
 )
 
 // Logo represents a K9s logo.
 type Logo struct {
 	*tview.Flex
 
+	title        string
 	logo, status *tview.TextView
 	styles       *config.Styles
 	mx           sync.Mutex
@@ -28,6 +32,7 @@ func NewLogo(styles *config.Styles) *Logo {
 		logo:   logo(),
 		status: status(),
 		styles: styles,
+		title:  "k9s",
 	}
 	l.SetDirection(tview.FlexRow)
 	l.AddItem(l.logo, 6, 1, false)
@@ -70,6 +75,17 @@ func (l *Logo) Reset() {
 	l.StylesChanged(l.styles)
 }
 
+// ClusterInfoUpdated notifies the cluster meta was updated.
+func (l *Logo) ClusterInfoUpdated(data *model.ClusterMeta) {
+	l.title = data.Cluster
+	l.refreshLogo(l.styles.Body().LogoColor)
+}
+
+// ClusterInfoUpdated notifies the cluster meta was updated.
+func (l *Logo) ClusterInfoChanged(prev, curr *model.ClusterMeta) {
+	l.ClusterInfoUpdated(curr)
+}
+
 // Err displays a log error state.
 func (l *Logo) Err(msg string) {
 	l.update(msg, l.styles.Body().LogoColorError)
@@ -100,16 +116,29 @@ func (l *Logo) refreshStatus(msg string, c config.Color) {
 	)
 }
 
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 func (l *Logo) refreshLogo(c config.Color) {
 	l.mx.Lock()
 	defer l.mx.Unlock()
 	l.logo.Clear()
-	for i, s := range LogoSmall {
-		_, _ = fmt.Fprintf(l.logo, "[%s::b]%s", c, s)
-		if i+1 < len(LogoSmall) {
-			_, _ = fmt.Fprintf(l.logo, "\n")
-		}
-	}
+
+	slicedTitle := l.title[:min(len(l.title), 3)]
+	logoString := figure.NewFigure(slicedTitle, "ANSI Shadow", true).String()
+	logoString = strings.TrimRight(logoString, " \n\t ") // Regular Space, New Line, Horizontal Tab, Em Space
+	fmt.Fprintf(l.logo, "[%s::b]%s", c, logoString)
+
+	// for i, s := range LogoSmall {
+	// 	_, _ = fmt.Fprintf(l.logo, "[%s::b]%s", c, s)
+	// 	if i+1 < len(LogoSmall) {
+	// 		_, _ = fmt.Fprintf(l.logo, "\n")
+	// 	}
+	// }
 }
 
 func logo() *tview.TextView {
